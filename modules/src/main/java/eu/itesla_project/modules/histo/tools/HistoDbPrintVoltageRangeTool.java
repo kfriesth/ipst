@@ -114,10 +114,10 @@ public class HistoDbPrintVoltageRangeTool implements Tool {
             HistoDbStats stats = histoDbClient.queryStats(attrIds, interval, HistoDbHorizon.SN, false);
             for (VoltageLevel vl : network.getVoltageLevels()) {
                 HistoDbNetworkAttributeId attrId = new HistoDbNetworkAttributeId(vl.getId(), HistoDbAttr.V);
-                float min = stats.getValue(HistoDbStatsType.MIN, attrId, Float.NaN) / vl.getNominalV();
-                float max = stats.getValue(HistoDbStatsType.MAX, attrId, Float.NaN) / vl.getNominalV();
+                float min = (float) (stats.getValue(HistoDbStatsType.MIN, attrId, Float.NaN) / vl.getNominalV());
+                float max = (float) (stats.getValue(HistoDbStatsType.MAX, attrId, Float.NaN) / vl.getNominalV());
                 int count = (int) stats.getValue(HistoDbStatsType.COUNT, attrId, 0);
-                VoltageStats vstats = new VoltageStats(Range.closed(min, max), count, vl.getNominalV());
+                VoltageStats vstats = new VoltageStats(Range.closed(min, max), count, (float) vl.getNominalV());
                 for (Generator g : vl.getGenerators()) {
                     vstats.pmax += g.getMaxP();
                 }

@@ -72,8 +72,8 @@ public final class EurostagStepUpTransformerInserter {
             for (TwoWindingsTransformer twt : n.getTwoWindingsTransformers()) {
                 PowerFlow pf = injections.get(twt.getId());
                 if (pf != null) {
-                    double dp = pf.p - (Float.isNaN(twt.getTerminal1().getP()) ? 0 : twt.getTerminal1().getP());
-                    double dq = pf.q - (Float.isNaN(twt.getTerminal1().getQ()) ? 0 : twt.getTerminal1().getQ());
+                    double dp = pf.p - (Double.isNaN(twt.getTerminal1().getP()) ? 0 : twt.getTerminal1().getP());
+                    double dq = pf.q - (Double.isNaN(twt.getTerminal1().getQ()) ? 0 : twt.getTerminal1().getQ());
                     if (dp > 1 || dq > 1) {
                         LOGGER.warn("Mismatch detected for {}: {},{}-> {},{}",
                                 twt.getId(), pf.p, pf.q, twt.getTerminal1().getP(), twt.getTerminal1().getQ());
@@ -84,7 +84,7 @@ public final class EurostagStepUpTransformerInserter {
             // for debug
             for (Bus b : n.getBusBreakerView().getBuses()) {
                 if (buses.containsKey(b.getId())) {
-                    buses.put(b.getId(), Math.abs(buses.get(b.getId()) - b.getV()));
+                    buses.put(b.getId(), (float) Math.abs(buses.get(b.getId()) - b.getV()));
                 }
             }
 
@@ -220,10 +220,10 @@ public final class EurostagStepUpTransformerInserter {
                 Load hvAux = n.getLoad(hvAuxId);
                 if (hvAux != null && hvAux.getTerminal().getBusBreakerView().getConnectableBus() == hvGenConnectableBus) {
                     if (hvAux.getTerminal().getBusView().getBus() != null) {
-                        if (!Float.isNaN(hvAux.getTerminal().getP())) {
+                        if (!Double.isNaN(hvAux.getTerminal().getP())) {
                             hvAuxPf.p = hvAux.getTerminal().getP();
                         }
-                        if (!Float.isNaN(hvAux.getTerminal().getQ())) {
+                        if (!Double.isNaN(hvAux.getTerminal().getQ())) {
                             hvAuxPf.q = hvAux.getTerminal().getQ();
                         }
                     }
@@ -243,8 +243,8 @@ public final class EurostagStepUpTransformerInserter {
 
             // transfer auxiliary load from hv to lv
             if (hvAuxPf.isValid()) {
-                float v = hvGenConnectableBus.getV();
-                if (Float.isNaN(v)) {
+                double v = hvGenConnectableBus.getV();
+                if (Double.isNaN(v)) {
                     v = hvVl.getNominalV();
                 }
                 StateVariable auxSv = transformerModel.toSv2(new StateVariable(-hvAuxPf.p, -hvAuxPf.q, v, 0));
@@ -266,12 +266,12 @@ public final class EurostagStepUpTransformerInserter {
                     .setBus(lvBusId)
                     .setConnectableBus(lvBusId)
                     .setLoadType(LoadType.AUXILIARY)
-                    .setP0((float) lvAuxPf.p)
-                    .setQ0((float) lvAuxPf.q)
+                    .setP0(lvAuxPf.p)
+                    .setQ0(lvAuxPf.q)
                     .add();
             lvAux.getTerminal()
-                    .setP((float) lvAuxPf.p)
-                    .setQ((float) lvAuxPf.q);
+                    .setP(lvAuxPf.p)
+                    .setQ(lvAuxPf.q);
 
             LOGGER.trace("Creating LV axiliary '{}' (p={}, q={})",
                     lvAux.getId(), lvAuxPf.p, lvAuxPf.q);
@@ -281,17 +281,17 @@ public final class EurostagStepUpTransformerInserter {
     private static void fillGeneratorState(Generator g, StateVariable sv) {
         Terminal t = g.getTerminal();
         Bus b = t.getBusBreakerView().getBus();
-        if (Float.isNaN(t.getP())) {
+        if (Double.isNaN(t.getP())) {
             sv.p = 0;
         } else {
             sv.p = t.getP();
         }
-        if (Float.isNaN(t.getQ())) {
+        if (Double.isNaN(t.getQ())) {
             sv.q = 0;
         } else {
             sv.q = t.getQ();
         }
-        if (b != null && !Float.isNaN(b.getV()) && !Float.isNaN(b.getAngle())) { // generator is connected
+        if (b != null && !Double.isNaN(b.getV()) && !Double.isNaN(b.getAngle())) { // generator is connected
             sv.u = b.getV();
             sv.theta = b.getAngle();
         } else {
@@ -310,19 +310,19 @@ public final class EurostagStepUpTransformerInserter {
 
         StateVariable destTargetSv = fct.apply(srcSv);
 
-        float newTargetP = (float) -destTargetSv.p;
-        float newTargetQ = (float) -destTargetSv.q;
-        float newTargetV = (float) destTargetSv.u;
+        double newTargetP = -destTargetSv.p;
+        double newTargetQ = -destTargetSv.q;
+        double newTargetV = destTargetSv.u;
 
-        destBus.setV((float) destTargetSv.u);
-        destBus.setAngle((float) destTargetSv.theta);
+        destBus.setV(destTargetSv.u);
+        destBus.setAngle(destTargetSv.theta);
 
         LOGGER.trace("Resizing set points of '{}', p0: {} -> {}, q0: {} -> {}, v0: {} -> {}",
                 srcGen.getId(), -srcSv.p, newTargetP,
                 -srcSv.q, newTargetQ, srcSv.u, newTargetV);
 
-        float newMinP = (float) -fct.apply(new StateVariable(-srcGen.getMinP(), srcSv.q, srcSv.u, srcSv.theta)).p;
-        float newMaxP = (float) -fct.apply(new StateVariable(-srcGen.getMaxP(), srcSv.q, srcSv.u, srcSv.theta)).p;
+        double newMinP = -fct.apply(new StateVariable(-srcGen.getMinP(), srcSv.q, srcSv.u, srcSv.theta)).p;
+        double newMaxP = -fct.apply(new StateVariable(-srcGen.getMaxP(), srcSv.q, srcSv.u, srcSv.theta)).p;
 
         LOGGER.trace("Resizing active limits of {} [{}, {}] -> [{}, {}]",
                 srcGen.getId(), srcGen.getMinP(), srcGen.getMaxP(), newMinP, newMaxP);
@@ -407,7 +407,7 @@ public final class EurostagStepUpTransformerInserter {
         VoltageLevel hvVl = hvT.getVoltageLevel();
         Substation s = hvVl.getSubstation();
         Network n = s.getNetwork();
-        float hvNomV = hvVl.getNominalV();
+        float hvNomV = (float) hvVl.getNominalV();
         Bus hvGenBus = hvT.getBusView().getBus();
         Bus hvGenConnectableBus = hvT.getBusBreakerView().getConnectableBus();
         if (hvGenConnectableBus == null) {
@@ -457,7 +457,7 @@ public final class EurostagStepUpTransformerInserter {
 
         TwoWindingsTransformer twt = createTransformer(tg, hvGen, lvVl, lvBus, vbaseHvBdd, vbaseLvBdd, config);
 
-        TransformerModel transformerModel = new TransformerModel(SV.getR(twt), SV.getX(twt), SV.getG(twt), SV.getB(twt), SV.getRatio(twt));
+        TransformerModel transformerModel = new TransformerModel(SV.getR(twt), SV.getX(twt), SV.getG(twt), SV.getB(twt), (float) SV.getRatio(twt));
 
         // remove high voltage auxiliary and create another one at low
         // voltage according to Eurostag DDB
@@ -487,8 +487,8 @@ public final class EurostagStepUpTransformerInserter {
     private static float computeMaxRate(TwoWindingsTransformer twt) {
         Objects.requireNonNull(twt);
         VoltageLevel u2 = twt.getTerminal2().getVoltageLevel();
-        float z = SV.getX(twt);
-        return 0.4f * (float) Math.pow(u2.getNominalV(), 2) / z;
+        double z = SV.getX(twt);
+        return (float) (0.4 * Math.pow(u2.getNominalV(), 2) / z);
     }
 
     public static InsertionStatus insert(Generator g, Path ddbFile, IdDictionary auxDict, EurostagStepUpTransformerConfig config, StateBefore stateBefore) throws IOException {
@@ -542,12 +542,12 @@ public final class EurostagStepUpTransformerInserter {
                     throw new RuntimeException(errMsg);
                 }
 
-                float v = lvBus.getV();
-                if (Float.isNaN(v)) {
+                double v = lvBus.getV();
+                if (Double.isNaN(v)) {
                     v = lvVl.getNominalV();
                 }
-                float a = lvBus.getAngle();
-                if (Float.isNaN(a)) {
+                double a = lvBus.getAngle();
+                if (Double.isNaN(a)) {
                     a = 0;
                 }
 
@@ -624,7 +624,7 @@ public final class EurostagStepUpTransformerInserter {
                                                                          SV.getX(twt),
                                                                          SV.getG(twt),
                                                                          SV.getB(twt),
-                                                                         SV.getRatio(twt));
+                                                                         (float) SV.getRatio(twt));
 
                 VoltageLevel hvVl;
                 Bus hvBus;
@@ -647,10 +647,10 @@ public final class EurostagStepUpTransformerInserter {
                     } else {
                         throw new RuntimeException("Unexpected stator substation topology");
                     }
-                    if (!Float.isNaN(hvBus.getV())) {
+                    if (!Double.isNaN(hvBus.getV())) {
                         otherSideSv.u = hvBus.getV();
                     }
-                    if (!Float.isNaN(hvBus.getAngle())) {
+                    if (!Double.isNaN(hvBus.getAngle())) {
                         otherSideSv.theta = hvBus.getAngle();
                     }
                     return otherSideSv;
@@ -717,7 +717,7 @@ public final class EurostagStepUpTransformerInserter {
         StateBefore stateBefore = new StateBefore();
 
         for (Bus b : n.getBusBreakerView().getBuses()) {
-            stateBefore.buses.put(b.getId(), b.getV());
+            stateBefore.buses.put(b.getId(), (float) b.getV());
         }
 
         EurostagDDB ddb = new EurostagDDB(ddbDirs);

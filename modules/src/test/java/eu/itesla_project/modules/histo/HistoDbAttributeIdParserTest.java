@@ -38,7 +38,7 @@ public class HistoDbAttributeIdParserTest {
         HistoDbAttributeId attrId = HistoDbAttributeIdParser.parse("GEN1_V");
         assertTrue(attrId instanceof HistoDbNetworkAttributeId);
         assertTrue("GEN1".equals(((HistoDbNetworkAttributeId) attrId).getEquipmentId()));
-        assertTrue(((HistoDbNetworkAttributeId) attrId).getSide() == null);
+        assertNull(((HistoDbNetworkAttributeId) attrId).getSide());
         assertTrue(((HistoDbNetworkAttributeId) attrId).getAttributeType() == HistoDbAttr.V);
     }
 

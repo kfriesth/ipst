@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 
 import com.powsybl.iidm.network.*;
+import com.powsybl.math.casting.Double2Float;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -49,8 +50,8 @@ public final class NetworkDataExtractor {
             //bus.getGenerators().forEach( (generator) -> generators.add(generator.getId()) );
             bus.getGenerators().forEach((generator) -> {
                 generators.add(generator.getId());
-                generatorsActivePower.add(generator.getTerminal().getP());
-                generatorsReactivePower.add(generator.getTerminal().getQ());
+                generatorsActivePower.add((float) generator.getTerminal().getP());
+                generatorsReactivePower.add((float) generator.getTerminal().getQ());
             });
             float activeInjection = generatorsActivePower.isEmpty() ? Float.NaN : generatorsActivePower.stream().reduce(0f, (a, b) -> a + b);
             float reactiveInjection = generatorsReactivePower.isEmpty() ? Float.NaN : generatorsReactivePower.stream().reduce(0f, (a, b) -> a + b);
@@ -61,16 +62,16 @@ public final class NetworkDataExtractor {
             //bus.getLoads().forEach( (load) -> loads.add(load.getId()) );
             bus.getLoads().forEach((load) -> {
                 loads.add(load.getId());
-                loadsActivePower.add(load.getTerminal().getP());
-                loadsReactivePower.add(load.getTerminal().getQ());
+                loadsActivePower.add((float) load.getTerminal().getP());
+                loadsReactivePower.add((float) load.getTerminal().getQ());
             });
             float activeAbsorption = loadsActivePower.isEmpty() ? Float.NaN : loadsActivePower.stream().reduce(0f, (a, b) -> a + b);
             float reactiveAbsorption = loadsReactivePower.isEmpty() ? Float.NaN : loadsReactivePower.stream().reduce(0f, (a, b) -> a + b);
 
             networkData.addBusData(new BusData(bus.getId(),
-                                               bus.getVoltageLevel().getNominalV(),
-                                               bus.getV(),
-                                               bus.getAngle(),
+                                               (float) bus.getVoltageLevel().getNominalV(),
+                                               (float) bus.getV(),
+                                               (float) bus.getAngle(),
                                                bus.getGenerators().iterator().hasNext(),
                                                generators,
                                                activeInjection,
@@ -79,8 +80,8 @@ public final class NetworkDataExtractor {
                                                loads,
                                                activeAbsorption,
                                                reactiveAbsorption,
-                                               bus.getP(),
-                                               bus.getQ(),
+                                               (float) bus.getP(),
+                                               (float) bus.getQ(),
                                                false)
             );
             updateSlackBusData(bus, busIndex, slackBusData);
@@ -103,10 +104,10 @@ public final class NetworkDataExtractor {
                                                      (line.getTerminal2().getBusBreakerView().getBus() != null)
                                                          ? line.getTerminal2().getBusBreakerView().getBus().getId()
                                                          : line.getTerminal2().getBusBreakerView().getConnectableBus().getId(),
-                                                     line.getTerminal1().getI(),
-                                                     line.getTerminal2().getI(),
-                                                     (line.getCurrentLimits1() != null) ? line.getCurrentLimits1().getPermanentLimit() : Float.NaN,
-                                                     (line.getCurrentLimits2() != null) ? line.getCurrentLimits2().getPermanentLimit() : Float.NaN)
+                                                     (float) line.getTerminal1().getI(),
+                                                     (float) line.getTerminal2().getI(),
+                                                     (line.getCurrentLimits1() != null) ? (float) line.getCurrentLimits1().getPermanentLimit() : Float.NaN,
+                                                     (line.getCurrentLimits2() != null) ? (float) line.getCurrentLimits2().getPermanentLimit() : Float.NaN)
                 );
             }
         }
@@ -123,10 +124,10 @@ public final class NetworkDataExtractor {
                                                            : tfo.getTerminal2().getBusBreakerView().getConnectableBus().getId(),
                                                    apparentPower(tfo.getTerminal1()),
                                                    apparentPower(tfo.getTerminal2()),
-                                                   tfo.getTerminal1().getVoltageLevel().getNominalV(),
-                                                   tfo.getTerminal2().getVoltageLevel().getNominalV(),
-                                                   (tfo.getCurrentLimits1() != null) ? tfo.getCurrentLimits1().getPermanentLimit() : Float.NaN,
-                                                   (tfo.getCurrentLimits2() != null) ? tfo.getCurrentLimits2().getPermanentLimit() : Float.NaN,
+                                                   (float) tfo.getTerminal1().getVoltageLevel().getNominalV(),
+                                                   (float) tfo.getTerminal2().getVoltageLevel().getNominalV(),
+                                                   (tfo.getCurrentLimits1() != null) ? (float) tfo.getCurrentLimits1().getPermanentLimit() : Float.NaN,
+                                                   (tfo.getCurrentLimits2() != null) ? (float) tfo.getCurrentLimits2().getPermanentLimit() : Float.NaN,
                                                    isRegulating(tfo),
                                                    correntStepPosition(tfo))
             );
@@ -148,12 +149,12 @@ public final class NetworkDataExtractor {
                                                    apparentPower(tfo.getLeg1().getTerminal()),
                                                    apparentPower(tfo.getLeg2().getTerminal()),
                                                    apparentPower(tfo.getLeg3().getTerminal()),
-                                                   tfo.getLeg1().getTerminal().getVoltageLevel().getNominalV(),
-                                                   tfo.getLeg1().getTerminal().getVoltageLevel().getNominalV(),
-                                                   tfo.getLeg3().getTerminal().getVoltageLevel().getNominalV(),
-                                                   (tfo.getLeg1().getCurrentLimits() != null) ? tfo.getLeg1().getCurrentLimits().getPermanentLimit() : Float.NaN,
-                                                   (tfo.getLeg2().getCurrentLimits() != null) ? tfo.getLeg2().getCurrentLimits().getPermanentLimit() : Float.NaN,
-                                                   (tfo.getLeg3().getCurrentLimits() != null) ? tfo.getLeg3().getCurrentLimits().getPermanentLimit() : Float.NaN)
+                                                   (float) tfo.getLeg1().getTerminal().getVoltageLevel().getNominalV(),
+                                                   (float) tfo.getLeg1().getTerminal().getVoltageLevel().getNominalV(),
+                                                   (float) tfo.getLeg3().getTerminal().getVoltageLevel().getNominalV(),
+                                                   (tfo.getLeg1().getCurrentLimits() != null) ? (float) tfo.getLeg1().getCurrentLimits().getPermanentLimit() : Float.NaN,
+                                                   (tfo.getLeg2().getCurrentLimits() != null) ? (float) tfo.getLeg2().getCurrentLimits().getPermanentLimit() : Float.NaN,
+                                                   (tfo.getLeg3().getCurrentLimits() != null) ? (float) tfo.getLeg3().getCurrentLimits().getPermanentLimit() : Float.NaN)
             );
         }
     }
@@ -166,11 +167,11 @@ public final class NetworkDataExtractor {
                                                                        : generator.getTerminal().getBusBreakerView().getConnectableBus().getId(),
                                                            generator.getTerminal().getBusBreakerView().getBus() != null,
                                                            apparentPower(generator.getTerminal()),
-                                                           generator.getTerminal().getP(),
-                                                           generator.getTerminal().getQ(),
-                                                           generator.getRatedS(),
-                                                           generator.getReactiveLimits().getMaxQ(generator.getTargetP()),
-                                                           generator.getReactiveLimits().getMinQ(generator.getTargetP()))
+                                                           (float) generator.getTerminal().getP(),
+                                                           (float) generator.getTerminal().getQ(),
+                                                           (float) generator.getRatedS(),
+                                                           Double2Float.safeCasting(generator.getReactiveLimits().getMaxQ(generator.getTargetP())),
+                                                           Double2Float.safeCasting(generator.getReactiveLimits().getMinQ(generator.getTargetP())))
 //                                                           generator.getReactiveLimits().getMaxQ(generator.getTerminal().getP()),
 //                                                           generator.getReactiveLimits().getMinQ(generator.getTerminal().getP()))
             );
@@ -184,16 +185,16 @@ public final class NetworkDataExtractor {
                                                          ? load.getTerminal().getBusBreakerView().getBus().getId()
                                                          : load.getTerminal().getBusBreakerView().getConnectableBus().getId(),
                                                  load.getTerminal().getBusBreakerView().getBus() != null,
-                                                 load.getTerminal().getVoltageLevel().getNominalV(),
-                                                 load.getTerminal().getP(),
-                                                 load.getTerminal().getQ())
+                                                 (float) load.getTerminal().getVoltageLevel().getNominalV(),
+                                                 (float) load.getTerminal().getP(),
+                                                 (float) load.getTerminal().getQ())
             );
         }
     }
 
     private static float apparentPower(Terminal terminal) {
         float apparentPower = Float.NaN;
-        if (!Float.isNaN(terminal.getP()) && !Float.isNaN(terminal.getQ())) {
+        if (!Double.isNaN(terminal.getP()) && !Double.isNaN(terminal.getQ())) {
             apparentPower = (float) Math.sqrt(Math.pow(terminal.getP(), 2) + Math.pow(terminal.getQ(), 2));
         }
         return apparentPower;

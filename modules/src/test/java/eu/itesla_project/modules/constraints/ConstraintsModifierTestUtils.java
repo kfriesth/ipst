@@ -20,15 +20,15 @@ import java.util.List;
 public class ConstraintsModifierTestUtils {
 
     public static final String VOLTAGE_LEVEL_1_ID = "vl1";
-    public static final float HIGH_VOLTAGE_LIMIT = 300f;
+    public static final double HIGH_VOLTAGE_LIMIT = 300.0;
     public static final String VOLTAGE_LEVEL_2_ID = "vl2";
-    public static final float LOW_VOLTAGE_LIMIT = 420f;
+    public static final double LOW_VOLTAGE_LIMIT = 420.0;
     public static final String LINE_ID = "line1";
-    public static final float CURRENT_LIMIT = 100f;
-    public static final float CURRENT_VALUE = 119.25632f;
-    public static final float V = 380f;
-    private static final float Q = 55f;
-    private static final float P = 56f;
+    public static final double CURRENT_LIMIT = 100.0;
+    public static final double CURRENT_VALUE = 119.25631358010583;
+    public static final double V = 380.0;
+    private static final double Q = 55.0;
+    private static final double P = 56.0;
     private static final Country COUNTRY = Country.FR;
 
     public static Network getNetwork() {
@@ -56,7 +56,7 @@ public class ConstraintsModifierTestUtils {
                 .setId(VOLTAGE_LEVEL_2_ID)
                 .setNominalV(V)
                 .setTopologyKind(TopologyKind.BUS_BREAKER)
-                .setHighVoltageLimit(550f)
+                .setHighVoltageLimit(550.0)
                 .setLowVoltageLimit(LOW_VOLTAGE_LIMIT)
                 .add();
         Bus b2 = vl2.getBusBreakerView().newBus()
@@ -71,12 +71,12 @@ public class ConstraintsModifierTestUtils {
                 .setVoltageLevel2(VOLTAGE_LEVEL_2_ID)
                 .setBus2("b2")
                 .setConnectableBus2("b2")
-                .setR(3)
-                .setX(33)
-                .setG1(0)
-                .setB1(386E-6f / 2)
-                .setG2(0f)
-                .setB2(386E-6f / 2)
+                .setR(3.0)
+                .setX(33.0)
+                .setG1(0.0)
+                .setB1(386E-6 / 2)
+                .setG2(0.0)
+                .setB2(386E-6 / 2)
                 .add();
         l1.newCurrentLimits1()
         .setPermanentLimit(CURRENT_LIMIT)

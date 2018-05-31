@@ -55,17 +55,17 @@ public final class HistoDbUtil {
         for (VoltageLevel vl : network.getVoltageLevels()) {
             HistoDbNetworkAttributeId attributeId = createVoltageAttributeId(vl);
 
-            Range<Float> histoVoltageRangePu = Range.closed(stats.getValue(HistoDbStatsType.P0_1, attributeId, Float.NaN) / vl.getNominalV(),
-                                                            stats.getValue(HistoDbStatsType.P99_9, attributeId, Float.NaN) / vl.getNominalV());
+            Range<Float> histoVoltageRangePu = Range.closed((float) (stats.getValue(HistoDbStatsType.P0_1, attributeId, Float.NaN) / vl.getNominalV()),
+                    (float) (stats.getValue(HistoDbStatsType.P99_9, attributeId, Float.NaN) / vl.getNominalV()));
 
             Set<EnergySource> energySources = EnumSet.noneOf(EnergySource.class);
             for (Generator g : vl.getGenerators()) {
                 energySources.add(g.getEnergySource());
             }
 
-            Range<Float> networkVoltageRangePu = Float.isNaN(vl.getLowVoltageLimit()) || Float.isNaN(vl.getHighVoltageLimit())
+            Range<Float> networkVoltageRangePu = Double.isNaN(vl.getLowVoltageLimit()) || Double.isNaN(vl.getHighVoltageLimit())
                     ? Range.closed(Float.NaN, Float.NaN)
-                    : Range.closed(vl.getLowVoltageLimit() / vl.getNominalV(), vl.getHighVoltageLimit() / vl.getNominalV());
+                    : Range.closed((float) (vl.getLowVoltageLimit() / vl.getNominalV()), (float) (vl.getHighVoltageLimit() / vl.getNominalV()));
 
             LOGGER.trace("Fix voltage range of {}: histo={}, network={}, energySources={}",
                     vl.getId(), histoVoltageRangePu, networkVoltageRangePu, energySources);
@@ -89,7 +89,7 @@ public final class HistoDbUtil {
                 }
             }
             Range<Float> rangePu = span(histoVoltageRangePu, rangeToEnclosePu);
-            Range<Float> range = Range.closed(rangePu.lowerEndpoint() * vl.getNominalV(), rangePu.upperEndpoint() * vl.getNominalV());
+            Range<Float> range = Range.closed((float) (rangePu.lowerEndpoint() * vl.getNominalV()), (float) (rangePu.upperEndpoint() * vl.getNominalV()));
 
             LOGGER.debug("Voltage range of {}: {} Kv ({} pu)", vl.getId(), range, rangePu);
 

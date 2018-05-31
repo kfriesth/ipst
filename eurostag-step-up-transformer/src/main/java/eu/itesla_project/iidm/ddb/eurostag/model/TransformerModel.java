@@ -26,10 +26,14 @@ public class TransformerModel {
     private final Complex y;
     private final float ratio;
 
-    public TransformerModel(float r, float x, float g, float b, float ratio) {
+    public TransformerModel(double r, double x, double g, double b, float ratio) {
         this.z = new Complex(r, x); // z=r+jx
         this.y = new Complex(g, b); // y=g+jb
         this.ratio = ratio;
+    }
+
+    public TransformerModel(float r, float x, float g, float b, float ratio) {
+        this((double) r, (double) x, (double) g, (double) b, ratio);
     }
 
     public StateVariable toSv2(StateVariable sv1) {

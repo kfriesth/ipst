@@ -160,7 +160,7 @@ public class GeneratorRecord extends ModelicaRecord {
 
     @Override
     public void createRecord(ModExportContext modContext, DDBManager ddbManager, SimulatorInst simulator) {
-        if (!Float.isNaN(this.busInfo.getBus().getV()) && this.busInfo.isConnected()) {
+        if (!Double.isNaN(this.busInfo.getBus().getV()) && this.busInfo.isConnected()) {
             if (super.isCorrect()) {
                 if (!busInfo.isConnected()) {
                     this.addValue(StaticData.COMMENT);
@@ -391,14 +391,14 @@ public class GeneratorRecord extends ModelicaRecord {
     public void setParameters(boolean isInyection, float snref) {
         IIDMParameter parameter;
         iidmgenParameters = new ArrayList<IIDMParameter>();
-        float voltage = 0;
-        float angle = 0;
+        double voltage = 0;
+        double angle = 0;
 
         if (generator.getTerminal().getBusView().getBus() != null) {
-            if (!Float.isNaN(generator.getTerminal().getBusView().getBus().getV())) {
+            if (!Double.isNaN(generator.getTerminal().getBusView().getBus().getV())) {
                 voltage = generator.getTerminal().getBusView().getBus().getV();
             }
-            if (!Float.isNaN(generator.getTerminal().getBusView().getBus().getAngle())) {
+            if (!Double.isNaN(generator.getTerminal().getBusView().getBus().getAngle())) {
                 angle = generator.getTerminal().getBusView().getBus().getAngle();
             }
         }
@@ -408,8 +408,8 @@ public class GeneratorRecord extends ModelicaRecord {
                 this.iidmgenParameters.add(parameter);
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());
 
-                float modulo = voltage / generator.getTerminal().getVoltageLevel().getNominalV();
-                float angulo = (float) (angle * Math.PI / 180);
+                double modulo = voltage / generator.getTerminal().getVoltageLevel().getNominalV();
+                double angulo = angle * Math.PI / 180;
 
                 double ur0 = modulo * Math.cos(angulo);
                 double ui0 = modulo * Math.sin(angulo);
@@ -431,12 +431,12 @@ public class GeneratorRecord extends ModelicaRecord {
                 addParamInMap(parameter.getName(), parameter.getValue().toString());
 
                 //Before 2015-05-28 the sign of pelec and qelec was not changed but now we change the sign.
-                float pelec = -this.generator.getTerminal().getP() / snref;
+                float pelec = (float) -this.generator.getTerminal().getP() / snref;
                 parameter = new IIDMParameter(EurostagFixedData.P, pelec);
                 this.iidmgenParameters.add(parameter);
                 addParamInMap(parameter.getName(), parameter.getValue().toString());
 
-                float qelec = -this.generator.getTerminal().getQ() / snref;
+                float qelec = (float) -this.generator.getTerminal().getQ() / snref;
                 parameter = new IIDMParameter(EurostagFixedData.Q, qelec);
                 this.iidmgenParameters.add(parameter);
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());
@@ -452,12 +452,12 @@ public class GeneratorRecord extends ModelicaRecord {
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());
 
                 //Before 2015-05-28 the sign of pelec and qelec was not changed but now we change the sign.
-                float pelec = -this.generator.getTerminal().getP();
+                float pelec = (float) -this.generator.getTerminal().getP();
                 parameter = new IIDMParameter(PsseFixedData.P_0, pelec);
                 this.iidmgenParameters.add(parameter);
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());
 
-                float qelec = -this.generator.getTerminal().getQ();
+                float qelec = (float) -this.generator.getTerminal().getQ();
                 parameter = new IIDMParameter(PsseFixedData.Q_0, qelec);
                 this.iidmgenParameters.add(parameter);
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());
@@ -481,12 +481,12 @@ public class GeneratorRecord extends ModelicaRecord {
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());
 
                 //Before 2015-05-28 the sign of pelec and qelec was not changed but now we change the sign.
-                float pelec = -this.generator.getTerminal().getP();
+                float pelec = (float) -this.generator.getTerminal().getP();
                 parameter = new IIDMParameter(PsseFixedData.P_0, pelec);
                 this.iidmgenParameters.add(parameter);
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());
 
-                float qelec = -this.generator.getTerminal().getQ();
+                float qelec = (float) -this.generator.getTerminal().getQ();
                 parameter = new IIDMParameter(PsseFixedData.Q_0, qelec);
                 this.iidmgenParameters.add(parameter);
                 addParamInMap(parameter.getName(),  parameter.getValue().toString());

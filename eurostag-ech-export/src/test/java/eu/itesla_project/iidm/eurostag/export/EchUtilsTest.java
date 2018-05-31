@@ -31,7 +31,6 @@ import static org.junit.Assert.*;
 public class EchUtilsTest {
 
 
-    private final float delta = 0.0f;
     private Network network;
     private Network networkHvdc;
 
@@ -56,7 +55,7 @@ public class EchUtilsTest {
 
     @Test
     public void testGetHvdcLineDcVoltage() {
-        networkHvdc.getHvdcLineStream().forEach(line -> assertEquals(line.getNominalV() * 2.0f, EchUtil.getHvdcLineDcVoltage(line), delta));
+        networkHvdc.getHvdcLineStream().forEach(line -> assertEquals(line.getNominalV() * 2.0, EchUtil.getHvdcLineDcVoltage(line), 0.0));
     }
 
     @Test

@@ -111,9 +111,9 @@ public final class OnlineDbMVStoreUtils {
         Map<String, String> limitViolation = new HashMap<String, String>();
         limitViolation.put("Subject", violation.getSubjectId());
         limitViolation.put("LimitType", violation.getLimitType().name());
-        limitViolation.put("Limit", Float.toString(violation.getLimit()));
+        limitViolation.put("Limit", Float.toString((float) violation.getLimit()));
         limitViolation.put("LimitReduction", Float.toString(violation.getLimitReduction()));
-        limitViolation.put("Value", Float.toString(violation.getValue()));
+        limitViolation.put("Value", Float.toString((float) violation.getValue()));
         if (violation.getLimitName() != null) {
             limitViolation.put("LimitName", violation.getLimitName());
         }

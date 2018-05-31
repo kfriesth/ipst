@@ -11,6 +11,7 @@ import com.google.common.base.Strings;
 import com.powsybl.commons.PowsyblException;
 import com.powsybl.iidm.network.*;
 import com.powsybl.iidm.network.util.Identifiables;
+import com.powsybl.math.casting.Double2Float;
 import eu.itesla_project.eurostag.network.*;
 import eu.itesla_project.eurostag.network.io.EsgWriter;
 import org.slf4j.Logger;
@@ -90,13 +91,13 @@ public class EurostagEchExport implements EurostagEchExporter {
     }
 
     private EsgNode createNode(String busId, VoltageLevel vl, float v, float angle, boolean slackBus) {
-        return createNode(busId, vl.getSubstation().getCountry().name(), vl.getNominalV(), v, angle, slackBus);
+        return createNode(busId, vl.getSubstation().getCountry().name(), (float) vl.getNominalV(), v, angle, slackBus);
     }
 
     private void createNodes(EsgNetwork esgNetwork) {
         fakeNodes.referencedEsgIdsAsStream().forEach(esgId -> {
             VoltageLevel vlevel = fakeNodes.getVoltageLevelByEsgId(esgId);
-            float nominalV = (vlevel != null) ? vlevel.getNominalV() : 380f;
+            float nominalV = (vlevel != null) ? (float) vlevel.getNominalV() : 380f;
             esgNetwork.addNode(createNode(esgId, EchUtil.FAKE_AREA, nominalV, nominalV, 0f, false));
         });
 
@@ -111,7 +112,7 @@ public class EurostagEchExport implements EurostagEchExporter {
                 LOGGER.warn("not in main component, skipping Bus: {}", b.getId());
                 continue;
             }
-            esgNetwork.addNode(createNode(b.getId(), b.getVoltageLevel(), b.getV(), b.getAngle(), sb == b));
+            esgNetwork.addNode(createNode(b.getId(), b.getVoltageLevel(), (float) b.getV(), (float) b.getAngle(), sb == b));
         }
         for (DanglingLine dl : Identifiables.sort(network.getDanglingLines())) {
             // skip DLs not in the main connected component
@@ -158,37 +159,37 @@ public class EurostagEchExport implements EurostagEchExporter {
         }
     }
 
-    private EsgLine createLine(String id, ConnectionBus bus1, ConnectionBus bus2, float nominalV, float r, float x, float g,
-                               float b, EsgGeneralParameters parameters) {
+    private EsgLine createLine(String id, ConnectionBus bus1, ConnectionBus bus2, double nominalV, double r, double x, double g,
+                               double b, EsgGeneralParameters parameters) {
         EsgBranchConnectionStatus status = getStatus(bus1, bus2);
         float rate = parameters.getSnref();
-        float vnom2 = (float) Math.pow(nominalV, 2);
-        float rb = r * parameters.getSnref() / vnom2;
-        float rxb = x * parameters.getSnref() / vnom2;
-        float gs = g / parameters.getSnref() * vnom2;
-        float bs = b / parameters.getSnref() * vnom2;
+        double vnom2 = Math.pow(nominalV, 2);
+        double rb = r * parameters.getSnref() / vnom2;
+        double rxb = x * parameters.getSnref() / vnom2;
+        double gs = g / parameters.getSnref() * vnom2;
+        double bs = b / parameters.getSnref() * vnom2;
         return new EsgLine(new EsgBranchName(new Esg8charName(dictionary.getEsgId(bus1.getId())),
                 new Esg8charName(dictionary.getEsgId(bus2.getId())),
                 parallelIndexes.getParallelIndex(id)),
-                status, rb, rxb, gs, bs, rate);
+                status, (float) rb, (float) rxb, (float) gs, (float) bs, rate);
     }
 
     private EsgDissymmetricalBranch createDissymmetricalBranch(String id, ConnectionBus bus1, ConnectionBus bus2,
-                                                               float nominalV, float r, float x, float g1, float b1, float g2, float b2,
+                                                               double nominalV, double r, double x, double g1, double b1, double g2, double b2,
                                                                EsgGeneralParameters parameters) {
         EsgBranchConnectionStatus status = getStatus(bus1, bus2);
         float rate = parameters.getSnref();
-        float vnom2 = (float) Math.pow(nominalV, 2);
-        float rb = (r * parameters.getSnref()) / vnom2;
-        float rxb = (x * parameters.getSnref()) / vnom2;
-        float gs1 = (g1 / parameters.getSnref()) * vnom2;
-        float bs1 = (b1 / parameters.getSnref()) * vnom2;
-        float gs2 = (g2 / parameters.getSnref()) * vnom2;
-        float bs2 = (b2 / parameters.getSnref()) * vnom2;
+        double vnom2 = Math.pow(nominalV, 2);
+        double rb = (r * parameters.getSnref()) / vnom2;
+        double rxb = (x * parameters.getSnref()) / vnom2;
+        double gs1 = (g1 / parameters.getSnref()) * vnom2;
+        double bs1 = (b1 / parameters.getSnref()) * vnom2;
+        double gs2 = (g2 / parameters.getSnref()) * vnom2;
+        double bs2 = (b2 / parameters.getSnref()) * vnom2;
         return new EsgDissymmetricalBranch(new EsgBranchName(new Esg8charName(dictionary.getEsgId(bus1.getId())),
                 new Esg8charName(dictionary.getEsgId(bus2.getId())),
                 parallelIndexes.getParallelIndex(id)),
-                status, rb, rxb, gs1, bs1, rate, rb, rxb, gs2, bs2);
+                status, (float) rb, (float) rxb, (float) gs1, (float) bs1, rate, (float) rb, (float) rxb, (float) gs2, (float) bs2);
     }
 
     private void createLines(EsgNetwork esgNetwork, EsgGeneralParameters parameters) {
@@ -209,10 +210,10 @@ public class EurostagEchExport implements EurostagEchExporter {
                     && (Math.abs(l.getB1() - l.getB2()) < B_EPSILON
                     || (Math.abs(l.getG1()) < G_EPSILON && Math.abs(l.getG2()) < G_EPSILON))) {
                 ConnectionBus bNode = null;
-                float b;
-                float diffB = 0f;
-                float g = (l.getG1() + l.getG2()) / 2.0f;
-                float vNom = 0f;
+                double b;
+                double diffB = 0.0;
+                double g = (l.getG1() + l.getG2()) / 2.0;
+                double vNom = 0.0;
                 if (l.getB1() < l.getB2() - B_EPSILON) {
                     bNode = bus2;
                     b = l.getB1();
@@ -224,7 +225,7 @@ public class EurostagEchExport implements EurostagEchExporter {
                     diffB = l.getB1() - l.getB2();
                     vNom = l.getTerminal1().getVoltageLevel().getNominalV();
                 } else {
-                    b = (l.getB1() + l.getB2()) / 2.0f;
+                    b = (l.getB1() + l.getB2()) / 2.0;
                 }
 
                 esgNetwork.addLine(createLine(l.getId(), bus1, bus2, l.getTerminal1().getVoltageLevel().getNominalV(),
@@ -237,13 +238,13 @@ public class EurostagEchExport implements EurostagEchExporter {
 
                     int ieleba = 1;
                     float plosba = 0.f;
-                    float rcapba = vNom * vNom * diffB;
+                    double rcapba = vNom * vNom * diffB;
                     int imaxba = 1;
                     EsgCapacitorOrReactorBank.RegulatingMode xregba = EsgCapacitorOrReactorBank.RegulatingMode.NOT_REGULATING;
 
                     esgNetwork.addCapacitorsOrReactorBanks(new EsgCapacitorOrReactorBank(new Esg8charName(dictionary.getEsgId(fictionalShuntId)),
                             new Esg8charName(dictionary.getEsgId(bNode.getId())),
-                            ieleba, plosba, rcapba, imaxba, xregba));
+                            ieleba, plosba, (float) rcapba, imaxba, xregba));
                 }
             } else {
                 EsgBranchConnectionStatus status = getStatus(bus1, bus2);
@@ -273,16 +274,16 @@ public class EurostagEchExport implements EurostagEchExporter {
         }
     }
 
-    private EsgDetailedTwoWindingTransformer.Tap createTap(TwoWindingsTransformer twt, int iplo, float rho, float dr, float dx,
+    private EsgDetailedTwoWindingTransformer.Tap createTap(TwoWindingsTransformer twt, int iplo, double rho, double dr, double dx,
                                                            float dephas, float rate, EsgGeneralParameters parameters) {
-        float nomiU2 = twt.getTerminal2().getVoltageLevel().getNominalV();
-        float uno1 = nomiU2 / rho;
-        float uno2 = nomiU2;
+        double nomiU2 = twt.getTerminal2().getVoltageLevel().getNominalV();
+        float uno1 = (float) (nomiU2 / rho);
+        float uno2 = (float) nomiU2;
 
         //...mTrans.getR() = Get the nominal series resistance specified in Ω at the secondary voltage side.
         float zb2 = (float) (Math.pow(nomiU2, 2) / parameters.getSnref());
-        float rpu2 = dr / zb2;  //...total line resistance  [p.u.](Base snref)
-        float xpu2 = dx / zb2;  //...total line reactance   [p.u.](Base snref)
+        float rpu2 = (float) dr / zb2;  //...total line resistance  [p.u.](Base snref)
+        float xpu2 = (float) dx / zb2;  //...total line reactance   [p.u.](Base snref)
 
         //...leakage impedance [%] (base rate)
         float ucc;
@@ -300,11 +301,11 @@ public class EurostagEchExport implements EurostagEchExporter {
     private void createAdditionalBank(EsgNetwork esgNetwork, TwoWindingsTransformer twt, Terminal terminal, String nodeName, Set<String> additionalBanksIds) {
         float rcapba = 0.0f;
         if (-twt.getB() < 0) {
-            rcapba = twt.getB() * (float) Math.pow(terminal.getVoltageLevel().getNominalV(), 2) / (config.isSpecificCompatibility() ? 2 : 1);
+            rcapba = (float) (twt.getB() * Math.pow(terminal.getVoltageLevel().getNominalV(), 2) / (config.isSpecificCompatibility() ? 2 : 1));
         }
         float plosba = 0.0f;
         if (twt.getG() < 0) {
-            plosba = twt.getG() * (float) Math.pow(terminal.getVoltageLevel().getNominalV(), 2) / (config.isSpecificCompatibility() ? 2 : 1);
+            plosba = (float) (twt.getG() * (float) Math.pow(terminal.getVoltageLevel().getNominalV(), 2) / (config.isSpecificCompatibility() ? 2 : 1));
         }
         if ((Math.abs(plosba) > G_EPSILON) || (rcapba > B_EPSILON)) {
             //simple new bank naming: 5 first letters of the node name, 7th letter of the node name, 'C', order code
@@ -326,8 +327,8 @@ public class EurostagEchExport implements EurostagEchExporter {
 
     }
 
-    private float getRtcRho1(TwoWindingsTransformer twt, int p) {
-        float rho1 = twt.getRatedU2() / twt.getRatedU1();
+    private double getRtcRho1(TwoWindingsTransformer twt, int p) {
+        double rho1 = twt.getRatedU2() / twt.getRatedU1();
         if (twt.getRatioTapChanger() != null) {
             rho1 *= twt.getRatioTapChanger().getStep(p).getRho();
         }
@@ -337,8 +338,8 @@ public class EurostagEchExport implements EurostagEchExporter {
         return rho1;
     }
 
-    private float getPtcRho1(TwoWindingsTransformer twt, int p) {
-        float rho1 = twt.getRatedU2() / twt.getRatedU1();
+    private double getPtcRho1(TwoWindingsTransformer twt, int p) {
+        double rho1 = twt.getRatedU2() / twt.getRatedU1();
         if (twt.getRatioTapChanger() != null) {
             rho1 *= twt.getRatioTapChanger().getCurrentStep().getRho();
         }
@@ -352,43 +353,47 @@ public class EurostagEchExport implements EurostagEchExporter {
         return initialValue * (1 + rtcStepValue / 100) * (1 + ptcStepValue / 100);
     }
 
-    private float getRtcR(TwoWindingsTransformer twt, int p) {
+    private double getValue(double initialValue, double rtcStepValue, double ptcStepValue) {
+        return initialValue * (1 + rtcStepValue / 100) * (1 + ptcStepValue / 100);
+    }
+
+    private double getRtcR(TwoWindingsTransformer twt, int p) {
         return getValue(twt.getR(),
                 twt.getRatioTapChanger() != null ? twt.getRatioTapChanger().getStep(p).getR() : 0,
                 twt.getPhaseTapChanger() != null ? twt.getPhaseTapChanger().getCurrentStep().getR() : 0);
     }
 
-    private float getPtcR(TwoWindingsTransformer twt, int p) {
+    private double getPtcR(TwoWindingsTransformer twt, int p) {
         return getValue(twt.getR(),
                 twt.getRatioTapChanger() != null ? twt.getRatioTapChanger().getCurrentStep().getR() : 0,
                 twt.getPhaseTapChanger() != null ? twt.getPhaseTapChanger().getStep(p).getR() : 0);
     }
 
-    private float getRtcX(TwoWindingsTransformer twt, int p) {
+    private double getRtcX(TwoWindingsTransformer twt, int p) {
         return getValue(twt.getX(),
                 twt.getRatioTapChanger() != null ? twt.getRatioTapChanger().getStep(p).getX() : 0,
                 twt.getPhaseTapChanger() != null ? twt.getPhaseTapChanger().getCurrentStep().getX() : 0);
     }
 
-    private float getPtcX(TwoWindingsTransformer twt, int p) {
+    private double getPtcX(TwoWindingsTransformer twt, int p) {
         return getValue(twt.getX(),
                 twt.getRatioTapChanger() != null ? twt.getRatioTapChanger().getCurrentStep().getX() : 0,
                 twt.getPhaseTapChanger() != null ? twt.getPhaseTapChanger().getStep(p).getX() : 0);
     }
 
-    private float getR(TwoWindingsTransformer twt) {
+    private double getR(TwoWindingsTransformer twt) {
         return getValue(twt.getR(),
                 twt.getRatioTapChanger() != null ? twt.getRatioTapChanger().getCurrentStep().getR() : 0,
                 twt.getPhaseTapChanger() != null ? twt.getPhaseTapChanger().getCurrentStep().getR() : 0);
     }
 
-    private float getG1(TwoWindingsTransformer twt) {
+    private double getG1(TwoWindingsTransformer twt) {
         return getValue(config.isSpecificCompatibility() ? twt.getG() / 2 : twt.getG(),
                 twt.getRatioTapChanger() != null ? twt.getRatioTapChanger().getCurrentStep().getG() : 0,
                 twt.getPhaseTapChanger() != null ? twt.getPhaseTapChanger().getCurrentStep().getG() : 0);
     }
 
-    private float getB1(TwoWindingsTransformer twt) {
+    private double getB1(TwoWindingsTransformer twt) {
         return getValue(config.isSpecificCompatibility() ? twt.getB() / 2 : twt.getB(),
                 twt.getRatioTapChanger() != null ? twt.getRatioTapChanger().getCurrentStep().getB() : 0,
                 twt.getPhaseTapChanger() != null ? twt.getPhaseTapChanger().getCurrentStep().getB() : 0);
@@ -416,12 +421,12 @@ public class EurostagEchExport implements EurostagEchExporter {
             //*** LOSSES COMPUTATION *** (Record 1)
             //**************************
 
-            float nomiU2 = twt.getTerminal2().getVoltageLevel().getNominalV();
+            double nomiU2 = twt.getTerminal2().getVoltageLevel().getNominalV();
 
             //...mTrans.getR() = Get the nominal series resistance specified in Ω at the secondary voltage side.
-            float rpu2 = (twt.getR() * parameters.getSnref()) / nomiU2 / nomiU2;  //...total line resistance  [p.u.](Base snref)
-            float gpu2 = ((config.isSpecificCompatibility() ? twt.getG() / 2 : twt.getG()) / parameters.getSnref()) * nomiU2 * nomiU2;  //...semi shunt conductance [p.u.](Base snref)
-            float bpu2 = ((config.isSpecificCompatibility() ? twt.getB() / 2 : twt.getB()) / parameters.getSnref()) * nomiU2 * nomiU2;  //...semi shunt susceptance [p.u.](Base snref)
+            float rpu2 = (float) ((twt.getR() * parameters.getSnref()) / nomiU2 / nomiU2);  //...total line resistance  [p.u.](Base snref)
+            float gpu2 = (float) (((config.isSpecificCompatibility() ? twt.getG() / 2 : twt.getG()) / parameters.getSnref()) * nomiU2 * nomiU2);  //...semi shunt conductance [p.u.](Base snref)
+            float bpu2 = (float) (((config.isSpecificCompatibility() ? twt.getB() / 2 : twt.getB()) / parameters.getSnref()) * nomiU2 * nomiU2);  //...semi shunt susceptance [p.u.](Base snref)
             float gpu2plus = Math.max(0, gpu2);
             float bpu2minus = Math.min(0, bpu2);
 
@@ -456,7 +461,7 @@ public class EurostagEchExport implements EurostagEchExporter {
                         zbusr = new Esg8charName(dictionary.getEsgId(regulatingBus.getId()));
                     }
                 }
-                voltr = rtc.getTargetV();
+                voltr = (float) rtc.getTargetV();
                 ktap8 = rtc.getTapPosition() - rtc.getLowTapPosition() + 1;
                 ktpnom = rtc.getStepCount() / 2 + 1;
                 for (int p = rtc.getLowTapPosition(); p <= rtc.getHighTapPosition(); p++) {
@@ -485,7 +490,7 @@ public class EurostagEchExport implements EurostagEchExporter {
                 ktpnom = ptc.getStepCount() / 2 + 1;
                 for (int p = ptc.getLowTapPosition(); p <= ptc.getHighTapPosition(); p++) {
                     int iplo = p - ptc.getLowTapPosition() + 1;
-                    taps.add(createTap(twt, iplo, getPtcRho1(twt, p), getPtcR(twt, p), getPtcX(twt, p), ptc.getStep(p).getAlpha(), rate, parameters));
+                    taps.add(createTap(twt, iplo, getPtcRho1(twt, p), getPtcR(twt, p), getPtcX(twt, p), (float) ptc.getStep(p).getAlpha(), rate, parameters));
                 }
             } else if (rtc == null && ptc == null) {
                 taps.add(createTap(twt, 1, twt.getRatedU2() / twt.getRatedU1(), twt.getR(), twt.getX(), 0f, rate, parameters));
@@ -495,16 +500,16 @@ public class EurostagEchExport implements EurostagEchExporter {
             // As an approximation, the resistance is fixed to the value it has for the initial step,
             // but discrepancies will occur if the step is changed.
             if ((ptc != null) || (rtc != null)) {
-                float tapAdjustedR = getR(twt);
-                float rpu2Adjusted = (tapAdjustedR * parameters.getSnref()) / nomiU2 / nomiU2;
-                pcu = rpu2Adjusted * rate * 100f / parameters.getSnref();
+                double tapAdjustedR = getR(twt);
+                double rpu2Adjusted = (tapAdjustedR * parameters.getSnref()) / nomiU2 / nomiU2;
+                pcu = (float) rpu2Adjusted * rate * 100f / parameters.getSnref();
 
-                float tapAdjustedG = Math.max(getG1(twt), 0);
-                float gpu2Adjusted = (tapAdjustedG / parameters.getSnref()) * nomiU2 * nomiU2;
-                pfer = 10000f * (gpu2Adjusted / rate) * (parameters.getSnref() / 100f);
+                double tapAdjustedG = Math.max(getG1(twt), 0);
+                double gpu2Adjusted = (tapAdjustedG / parameters.getSnref()) * nomiU2 * nomiU2;
+                pfer = 10000f * ((float) gpu2Adjusted / rate) * (parameters.getSnref() / 100f);
 
-                float tapAdjustedB = Math.min(getB1(twt), 0);
-                float bpu2Adjusted = (tapAdjustedB / parameters.getSnref()) * nomiU2 * nomiU2;
+                double tapAdjustedB = Math.min(getB1(twt), 0);
+                double bpu2Adjusted = (tapAdjustedB / parameters.getSnref()) * nomiU2 * nomiU2;
                 modgb = (float) Math.sqrt(Math.pow(gpu2Adjusted, 2.f) + Math.pow(bpu2Adjusted, 2.f));
                 cmagn = 10000f * (modgb / rate) * (parameters.getSnref() / 100f);
             }
@@ -553,11 +558,11 @@ public class EurostagEchExport implements EurostagEchExporter {
         }
     }
 
-    private EsgLoad createLoad(ConnectionBus bus, String loadId, float p0, float q0) {
+    private EsgLoad createLoad(ConnectionBus bus, String loadId, double p0, double q0) {
         EsgConnectionStatus status = bus.isConnected() ? EsgConnectionStatus.CONNECTED : EsgConnectionStatus.NOT_CONNECTED;
         return new EsgLoad(status, new Esg8charName(dictionary.getEsgId(loadId)),
                 new Esg8charName(dictionary.getEsgId(bus.getId())),
-                0f, 0f, p0, 0f, 0f, q0);
+                0f, 0f, (float) p0, 0f, 0f, (float) q0);
     }
 
     private void createLoads(EsgNetwork esgNetwork) {
@@ -592,14 +597,14 @@ public class EurostagEchExport implements EurostagEchExporter {
             ConnectionBus bus = ConnectionBus.fromTerminal(g.getTerminal(), config, fakeNodes);
 
             EsgConnectionStatus status = bus.isConnected() ? EsgConnectionStatus.CONNECTED : EsgConnectionStatus.NOT_CONNECTED;
-            float pgen = g.getTargetP();
-            float qgen = g.getTargetQ();
-            float pgmin = g.getMinP();
-            float pgmax = g.getMaxP();
+            float pgen = (float) g.getTargetP();
+            float qgen = (float) g.getTargetQ();
+            float pgmin = (float) g.getMinP();
+            float pgmax = (float) g.getMaxP();
             boolean isQminQmaxInverted = g.getReactiveLimits().getMinQ(pgen) > g.getReactiveLimits().getMaxQ(pgen);
             if (isQminQmaxInverted) {
                 LOGGER.warn("inverted qmin {} and qmax {} values for generator {}", g.getReactiveLimits().getMinQ(pgen), g.getReactiveLimits().getMaxQ(pgen), g.getId());
-                qgen = -g.getTerminal().getQ();
+                qgen = (float) -g.getTerminal().getQ();
             }
             boolean isVoltageRegulatorOn = g.isVoltageRegulatorOn();
             // Exception for out of bound regulating generators
@@ -609,11 +614,11 @@ public class EurostagEchExport implements EurostagEchExporter {
             }
             // in case qmin and qmax are inverted, take out the unit from the voltage regulation if it has a target Q
             // and open widely the Q interval
-            float qgmin = (config.isNoGeneratorMinMaxQ() || isQminQmaxInverted) ? -9999 : g.getReactiveLimits().getMinQ(pgen);
-            float qgmax = (config.isNoGeneratorMinMaxQ() || isQminQmaxInverted) ? 9999 : g.getReactiveLimits().getMaxQ(pgen);
-            EsgRegulatingMode mode = (isQminQmaxInverted && !Float.isNaN(qgen)) ? EsgRegulatingMode.NOT_REGULATING :
+            float qgmin = (config.isNoGeneratorMinMaxQ() || isQminQmaxInverted) ? -9999 : Double2Float.safeCasting(g.getReactiveLimits().getMinQ(pgen));
+            float qgmax = (config.isNoGeneratorMinMaxQ() || isQminQmaxInverted) ? 9999 : Double2Float.safeCasting(g.getReactiveLimits().getMaxQ(pgen));
+            EsgRegulatingMode mode = (isQminQmaxInverted && !Double.isNaN(qgen)) ? EsgRegulatingMode.NOT_REGULATING :
                     (isVoltageRegulatorOn && g.getTargetV() >= 0.1 ? EsgRegulatingMode.REGULATING : EsgRegulatingMode.NOT_REGULATING);
-            float vregge = (isQminQmaxInverted && !Float.isNaN(qgen)) ? Float.NaN : (isVoltageRegulatorOn ? g.getTargetV() : Float.NaN);
+            float vregge = (float) ((isQminQmaxInverted && !Double.isNaN(qgen)) ? Double.NaN : (isVoltageRegulatorOn ? g.getTargetV() : Double.NaN));
             float qgensh = 1.f;
 
             //fails, when noSwitch is true !!
@@ -644,13 +649,13 @@ public class EurostagEchExport implements EurostagEchExporter {
             //...number of steps in service
             int ieleba = bus.isConnected() ? sc.getCurrentSectionCount() : 0; // not really correct, because it can be connected with zero section, EUROSTAG should be modified...
             float plosba = 0.f; // no active lost in the iidm shunt compensator
-            float vnom = sc.getTerminal().getVoltageLevel().getNominalV();
-            float rcapba = vnom * vnom * sc.getbPerSection();
+            double vnom = sc.getTerminal().getVoltageLevel().getNominalV();
+            double rcapba = vnom * vnom * sc.getbPerSection();
             int imaxba = sc.getMaximumSectionCount();
             EsgCapacitorOrReactorBank.RegulatingMode xregba = EsgCapacitorOrReactorBank.RegulatingMode.NOT_REGULATING;
             esgNetwork.addCapacitorsOrReactorBanks(new EsgCapacitorOrReactorBank(new Esg8charName(dictionary.getEsgId(sc.getId())),
                     new Esg8charName(dictionary.getEsgId(bus.getId())),
-                    ieleba, plosba, rcapba, imaxba, xregba));
+                    ieleba, plosba, (float) rcapba, imaxba, xregba));
         }
     }
 
@@ -666,10 +671,10 @@ public class EurostagEchExport implements EurostagEchExporter {
             Esg8charName znamsvc = new Esg8charName(dictionary.getEsgId(svc.getId()));
             EsgConnectionStatus xsvcst = bus.isConnected() ? EsgConnectionStatus.CONNECTED : EsgConnectionStatus.NOT_CONNECTED;
             Esg8charName znodsvc = new Esg8charName(dictionary.getEsgId(bus.getId()));
-            float vlNomVoltage = svc.getTerminal().getVoltageLevel().getNominalV();
-            float factor = (float) Math.pow(vlNomVoltage, 2);
-            float bmin = (!config.isSvcAsFixedInjectionInLF()) ? svc.getBmin() * factor : -9999999; // [Mvar]
-            float binit; // [Mvar]
+            double vlNomVoltage = svc.getTerminal().getVoltageLevel().getNominalV();
+            double factor = Math.pow(vlNomVoltage, 2);
+            double bmin = (!config.isSvcAsFixedInjectionInLF()) ? svc.getBmin() * factor : -9999999; // [Mvar]
+            double binit; // [Mvar]
             if (!config.isSvcAsFixedInjectionInLF()) {
                 binit = svc.getReactivePowerSetPoint();
             } else {
@@ -679,12 +684,12 @@ public class EurostagEchExport implements EurostagEchExporter {
                     binit = binit * (float) Math.pow(vlNomVoltage / svcBus.getV(), 2);
                 }
             }
-            float bmax = (!config.isSvcAsFixedInjectionInLF()) ? svc.getBmax() * factor : 9999999; // [Mvar]
+            double bmax = (!config.isSvcAsFixedInjectionInLF()) ? svc.getBmax() * factor : 9999999; // [Mvar]
             EsgRegulatingMode xregsvc = ((svc.getRegulationMode() == StaticVarCompensator.RegulationMode.VOLTAGE) && (!config.isSvcAsFixedInjectionInLF())) ? EsgRegulatingMode.REGULATING : EsgRegulatingMode.NOT_REGULATING;
-            float vregsvc = svc.getVoltageSetPoint();
+            double vregsvc = svc.getVoltageSetPoint();
             float qsvsch = 1.0f;
             esgNetwork.addStaticVarCompensator(
-                    new EsgStaticVarCompensator(znamsvc, xsvcst, znodsvc, bmin, binit, bmax, xregsvc, vregsvc, qsvsch));
+                    new EsgStaticVarCompensator(znamsvc, xsvcst, znodsvc, (float) bmin, (float) binit, (float) bmax, xregsvc, (float) vregsvc, qsvsch));
         }
     }
 
@@ -708,7 +713,11 @@ public class EurostagEchExport implements EurostagEchExporter {
     }
 
     protected float zeroIfNanOrValue(float value) {
-        return Float.isNaN(value) ? 0 : value;
+        return Float.isNaN(value) ? 0f : value;
+    }
+
+    protected double zeroIfNanOrValue(double value) {
+        return Double.isNaN(value) ? 0 : value;
     }
 
     protected EsgACDCVscConverter createACDCVscConverter(VscConverterStation vscConv, HvdcLine hline, Esg8charName vscConvDcName) {
@@ -733,16 +742,16 @@ public class EurostagEchExport implements EurostagEchExporter {
         float rrdc = 0; // resistance [Ohms]
         float rxdc = 16; // reactance [Ohms]
 
-        float activeSetPoint = zeroIfNanOrValue(hline.getActivePowerSetpoint()); // AC active power setpoint [MW]. Only if DC control mode is 'P'
+        double activeSetPoint = zeroIfNanOrValue(hline.getActivePowerSetpoint()); // AC active power setpoint [MW]. Only if DC control mode is 'P'
         //subtracts losses on the P side (even if the station in context is V)
-        float pac = activeSetPoint - Math.abs(activeSetPoint * EchUtil.getPStation(hline).getLossFactor() / 100.0f);
+        float pac = (float) (activeSetPoint - Math.abs(activeSetPoint * EchUtil.getPStation(hline).getLossFactor() / 100.0f));
         pac = isPmode ? pac : -pac; //change sign in case of V mode side
         // multiplying  the line's nominalV by 2 corresponds to the fact that iIDM refers to the cable-ground voltage
         // while Eurostag regulations to the cable-cable voltage
         float pvd = EchUtil.getHvdcLineDcVoltage(hline); // DC voltage setpoint [MW]. Only if DC control mode is 'V'
-        float pre = -vscConv.getReactivePowerSetpoint(); // AC reactive power setpoint [Mvar]. Only if AC control mode is 'Q'
+        float pre = (float) -vscConv.getReactivePowerSetpoint(); // AC reactive power setpoint [Mvar]. Only if AC control mode is 'Q'
         if ((Float.isNaN(pre)) || (vscConv.isVoltageRegulatorOn())) {
-            float terminalQ = vscConv.getTerminal().getQ();
+            float terminalQ = (float) vscConv.getTerminal().getQ();
             if (Float.isNaN(terminalQ)) {
                 pre = zeroIfNanOrValue(pre);
             } else {
@@ -751,10 +760,10 @@ public class EurostagEchExport implements EurostagEchExporter {
         }
         float pco = Float.NaN; // AC power factor setpoint. Only if AC control mode is 'A'
         float qvscsh = 1; // Reactive sharing cofficient [%]. Only if AC control mode is 'V'
-        float pvscmin = -hline.getMaxP(); // Minimum AC active power [MW]
-        float pvscmax = hline.getMaxP(); // Maximum AC active power [MW]
-        float qvscmin = vscConv.getReactiveLimits().getMinQ(0); // Minimum reactive power injected on AC node [kV]
-        float qvscmax = vscConv.getReactiveLimits().getMaxQ(0); // Maximum reactive power injected on AC node [kV]
+        float pvscmin = (float) -hline.getMaxP(); // Minimum AC active power [MW]
+        float pvscmax = (float) hline.getMaxP(); // Maximum AC active power [MW]
+        float qvscmin = Double2Float.safeCasting(vscConv.getReactiveLimits().getMinQ(0)); // Minimum reactive power injected on AC node [kV]
+        float qvscmax = Double2Float.safeCasting(vscConv.getReactiveLimits().getMaxQ(0)); // Maximum reactive power injected on AC node [kV]
         // iIDM vscConv.getLossFactor() is in % of the MW. As it is, not suitable for vsb0, which is fixed in MW
         // for now, set  vsb0, vsb1,vsb2 to 0
         float vsb0 = 0; // Losses coefficient Beta0 [MW]
@@ -768,9 +777,9 @@ public class EurostagEchExport implements EurostagEchExporter {
                 throw new RuntimeException("VSCConverter " + vscConv.getId() + " : connected bus not found!");
             }
         }
-        float mvm = connectedBus.getV() / connectedBus.getVoltageLevel().getNominalV(); // Initial AC modulated voltage magnitude [p.u.]
-        float mva = connectedBus.getAngle(); // Initial AC modulated voltage angle [deg]
-        float pva = connectedBus.getV(); // AC voltage setpoint [kV]. Only if AC control mode is 'V'
+        float mvm = (float) (connectedBus.getV() / connectedBus.getVoltageLevel().getNominalV()); // Initial AC modulated voltage magnitude [p.u.]
+        float mva = (float) connectedBus.getAngle(); // Initial AC modulated voltage angle [deg]
+        float pva = (float) connectedBus.getV(); // AC voltage setpoint [kV]. Only if AC control mode is 'V'
 
         return new EsgACDCVscConverter(
                 znamsvc,
@@ -806,7 +815,7 @@ public class EurostagEchExport implements EurostagEchExporter {
     }
 
     protected float computeLosses(HvdcLine hvdcLine, HvdcConverterStation convStation) {
-        float activeSetPoint = zeroIfNanOrValue(hvdcLine.getActivePowerSetpoint());
+        float activeSetPoint = zeroIfNanOrValue((float) hvdcLine.getActivePowerSetpoint());
         return computeLosses(hvdcLine, convStation, activeSetPoint);
     }
 

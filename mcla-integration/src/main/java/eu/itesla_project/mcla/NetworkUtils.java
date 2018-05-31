@@ -106,7 +106,7 @@ public final class NetworkUtils {
 
     private static float getV(Terminal t) {
         Bus b = t.getBusBreakerView().getBus();
-        return b != null ? b.getV() : Float.NaN;
+        return b != null ? (float) b.getV() : Float.NaN;
     }
 
 

@@ -237,7 +237,7 @@ public class MontecarloSamplerImpl implements MontecarloSampler {
                 String generatorId = connectedGeneratorsIds.get(i);
                 float newActivePower = sample.getGeneratorsActivePower()[i];
                 //float oldActivePower = network.getGenerator(generatorId).getTargetP();
-                float oldActivePower = network.getGenerator(generatorId).getTerminal().getP();
+                float oldActivePower = (float) network.getGenerator(generatorId).getTerminal().getP();
                 totalPGenBS += oldActivePower;
                 totalPGenAS += newActivePower;
                 LOGGER.debug("Network {} state {}: generator {} - P:{} -> P:{} - limits[{},{}]",
@@ -266,7 +266,7 @@ public class MontecarloSamplerImpl implements MontecarloSampler {
                 if (sample.getLoadsActivePower() != null) {
                     float newActivePower = sample.getLoadsActivePower()[i];
                     //float oldActivePower = network.getLoad(loadId).getP0();
-                    float oldActivePower = network.getLoad(loadId).getTerminal().getP();
+                    float oldActivePower = (float) network.getLoad(loadId).getTerminal().getP();
                     totalPLoadBS += oldActivePower;
                     totalPLoadAS += newActivePower;
                     LOGGER.debug("Network {} state {}: load {} - P:{} -> P:{} ", network.getId(), network.getStateManager().getWorkingStateId(), loadId, oldActivePower, newActivePower);
@@ -280,7 +280,7 @@ public class MontecarloSamplerImpl implements MontecarloSampler {
                 if (sample.getLoadsReactivePower() != null) {
                     float newReactivePower = sample.getLoadsReactivePower()[i];
                     //float oldReactivePower = network.getLoad(loadId).getQ0();
-                    float oldReactivePower = network.getLoad(loadId).getTerminal().getQ();
+                    float oldReactivePower = (float) network.getLoad(loadId).getTerminal().getQ();
                     totalQLoadBS += oldReactivePower;
                     // filter suggested by RSE: skip assignment if the new value is greater than a certain threshold (e.g. 1000 MVar)
                     // it is necessary to have consistent data (to make the load flow converge) when Q is computed based on P

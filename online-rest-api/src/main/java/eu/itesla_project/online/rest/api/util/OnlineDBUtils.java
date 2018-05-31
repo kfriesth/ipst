@@ -274,8 +274,8 @@ public class OnlineDBUtils implements ProcessDBUtils {
         limitList.forEach(lv -> {
             LimitViolationType violationType = lv.getLimitType();
             String equipment = lv.getSubjectId();
-            float limit = lv.getLimit();
-            float value = lv.getValue();
+            float limit = (float) lv.getLimit();
+            float value = (float) lv.getValue();
             ViolationSynthesis synt;
             Optional<ViolationSynthesis> searchSynt = violationList.stream()
                     .filter(v -> v.getEquipment().equals(equipment))
@@ -283,7 +283,7 @@ public class OnlineDBUtils implements ProcessDBUtils {
             if (searchSynt.isPresent()) {
                 synt = searchSynt.get();
             } else {
-                synt = new ViolationSynthesis(equipment, getNominalVoltage(lv, network), violationType, limit, lv.getLimitName());
+                synt = new ViolationSynthesis(equipment, (float) getNominalVoltage(lv, network), violationType, limit, lv.getLimitName());
                 violationList.add(synt);
             }
 

@@ -17,7 +17,7 @@ import eu.itesla_project.modules.contingencies.VoltageLevel;
 public class VoltageLevelImpl implements VoltageLevel {
 
     private String id;
-    private  BigInteger level;
+    private BigInteger level;
 
     public VoltageLevelImpl(String id, BigInteger level) {
         this.id = id;

@@ -71,13 +71,13 @@ public class SampleImpl implements Sample {
             //   - the generator is not controlling voltage, we sample P and Q
             //     and WP4.2 optimizer won't touch it
             if (g.isVoltageRegulatorOn()) {
-                float oldP = g.getTargetP();
+                double oldP = g.getTargetP();
                 LOGGER.trace(" gen {} - P:{} -> P:{}", g.getId(), oldP, gs.p);
                 g.setTargetP(-gs.p);
                 g.getTerminal().setP(gs.p);
             } else {
-                float oldP = g.getTargetP();
-                float oldQ = g.getTargetQ();
+                double oldP = g.getTargetP();
+                double oldQ = g.getTargetQ();
                 LOGGER.trace(" gen {} - P:{}, Q:{} -> P:{}, Q:{} ", g.getId(), oldP, oldQ, gs.p, gs.q);
                 g.setTargetP(-gs.p)
                         .setTargetQ(-gs.q);
@@ -90,8 +90,8 @@ public class SampleImpl implements Sample {
             if (l == null) {
                 throw new RuntimeException("Load '" + ls.id + "' not found");
             }
-            float oldP0 = l.getP0();
-            float oldQ0 = l.getQ0();
+            double oldP0 = l.getP0();
+            double oldQ0 = l.getQ0();
             LOGGER.trace(" load {} - P:{}, Q:{} -> P:{}, Q:{} ", l.getId(), oldP0, oldQ0, ls.p, ls.q);
             l.setP0(ls.p).setQ0(ls.q);
             l.getTerminal().setP(ls.p).setQ(ls.q);
@@ -101,8 +101,8 @@ public class SampleImpl implements Sample {
             if (dl == null) {
                 throw new RuntimeException("Dangling line '" + ls.id + "' not found");
             }
-            float oldP0 = dl.getP0();
-            float oldQ0 = dl.getQ0();
+            double oldP0 = dl.getP0();
+            double oldQ0 = dl.getQ0();
             LOGGER.trace(" dangling line {} - P:{}, Q:{} -> P:{}, Q:{} ", dl.getId(), oldP0, oldQ0, ls.p, ls.q);
             dl.setP0(ls.p).setQ0(ls.q);
         }

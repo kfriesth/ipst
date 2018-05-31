@@ -169,19 +169,19 @@ public class NetworkInfo {
             switch (eqType) {
                 case GEN:
                     logger.debug("  equipment == generator");
-                    returnValue = network.getGenerator(equipment).getTerminal().getP();
+                    returnValue = (float) network.getGenerator(equipment).getTerminal().getP();
                     break;
                 case LOAD:
                     logger.debug("  equipment == load");
-                    returnValue = network.getLoad(equipment).getP0();
+                    returnValue = (float) network.getLoad(equipment).getP0();
                     break;
                 case LINE:
                     logger.debug(" equipment == line");
                     if (network.getLine(equipment).getTerminal1() != null) {
-                        returnValue = network.getLine(equipment).getTerminal1().getP();
+                        returnValue = (float) network.getLine(equipment).getTerminal1().getP();
                     }
                     if (network.getLine(equipment).getTerminal2() != null) {
-                        returnValue = network.getLine(equipment).getTerminal2().getP();
+                        returnValue = (float) network.getLine(equipment).getTerminal2().getP();
                     }
                     break;
             }
@@ -205,19 +205,19 @@ public class NetworkInfo {
             switch (eqType) {
                 case GEN:
                     logger.debug(" equipment == generator");
-                    returnValue = network.getGenerator(equipment).getTerminal().getQ();
+                    returnValue = (float) network.getGenerator(equipment).getTerminal().getQ();
                     break;
                 case LOAD:
                     logger.debug("  equipment == load");
-                    returnValue = network.getLoad(equipment).getQ0();
+                    returnValue = (float) network.getLoad(equipment).getQ0();
                     break;
                 case LINE:
                     logger.debug("  equipment == line");
                     if (network.getLine(equipment).getTerminal1() != null) {
-                        returnValue = network.getLine(equipment).getTerminal1().getQ();
+                        returnValue = (float) network.getLine(equipment).getTerminal1().getQ();
                     }
                     if (network.getLine(equipment).getTerminal2() != null) {
-                        returnValue = network.getLine(equipment).getTerminal2().getQ();
+                        returnValue = (float) network.getLine(equipment).getTerminal2().getQ();
                     }
                     break;
             }

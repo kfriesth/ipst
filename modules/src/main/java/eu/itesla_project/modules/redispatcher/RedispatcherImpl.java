@@ -72,10 +72,10 @@ public class RedispatcherImpl implements Redispatcher {
             float redispactchedP = 0;
             // distribute the P in the available redispatchable generators for this run
             for (Generator generator : redispatchableGenerators) {
-                float redispatchPMin = redispatchLimits.containsKey(generator.getId()) ? redispatchLimits.get(generator.getId()).getPMin() : generator.getMinP();
-                float redispatchPMax = redispatchLimits.containsKey(generator.getId()) ? redispatchLimits.get(generator.getId()).getPMax() : generator.getMaxP();
+                double redispatchPMin = redispatchLimits.containsKey(generator.getId()) ? redispatchLimits.get(generator.getId()).getPMin() : generator.getMinP();
+                double redispatchPMax = redispatchLimits.containsKey(generator.getId()) ? redispatchLimits.get(generator.getId()).getPMax() : generator.getMaxP();
                 // calculate new P according to delta P to redispatch and participation factor
-                float newP = newP(generator, deltaP, parameters.getParticipationFactor().get(generator.getId()), totalPartecipationFactor);
+                double newP = newP(generator, deltaP, parameters.getParticipationFactor().get(generator.getId()), totalPartecipationFactor);
 //                LOGGER.debug("{}: generator {} - new computed P:{}", network.getStateManager().getWorkingStateId(), generator.getId(), newP);
                 // keep P within redispatch limits
                 if (-newP <= redispatchPMin) {
@@ -117,7 +117,7 @@ public class RedispatcherImpl implements Redispatcher {
         return (float) partecipationFactor.keySet().stream().filter(x -> generatorsIds.contains(x)).mapToDouble((x) -> partecipationFactor.get(x)).sum();
     }
 
-    private float newP(Generator generator, float deltaP, float participationFactor, float totalPartecipationFactor) {
+    private double newP(Generator generator, float deltaP, float participationFactor, float totalPartecipationFactor) {
         return generator.getTerminal().getP() - deltaP * participationFactor / totalPartecipationFactor;
     }
 

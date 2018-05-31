@@ -80,7 +80,7 @@ public class WCASecurityRulesWriter implements WCAConstants {
         int entityType;
         int entityNum;
         int sideNum = 0;
-        float nomV;
+        double nomV;
         Branch branch = network.getBranch(attrId.getEquipmentId());
         if (branch != null) {
             entityType = 1;
@@ -133,7 +133,7 @@ public class WCASecurityRulesWriter implements WCAConstants {
                 }
             }
         }
-        return new WCAEntity(entityType, entityNum, sideNum, nomV);
+        return new WCAEntity(entityType, entityNum, sideNum, (float) nomV);
     }
 
     public void write() {

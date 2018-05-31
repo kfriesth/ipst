@@ -31,6 +31,10 @@ public class Violation {
         this.voltageLevel = voltageLevel;
     }
 
+    public Violation(String country, String equipment, String type, double limit, double value, int voltageLevel) {
+        this(country, equipment, type, (float) limit, (float) value, voltageLevel);
+    }
+
     @JsonProperty("equipment")
     public String getEquipment() {
         return equipment;

@@ -192,7 +192,7 @@ public final class EchUtil {
      */
     public static float getHvdcLineDcVoltage(HvdcLine line) {
         Objects.requireNonNull(line);
-        return line.getNominalV() * 2.0f;
+        return (float) line.getNominalV() * 2.0f;
     }
 
     public static boolean isPMode(HvdcConverterStation vscConv, HvdcLine hvdcLine) {

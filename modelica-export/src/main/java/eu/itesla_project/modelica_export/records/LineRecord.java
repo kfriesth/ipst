@@ -56,7 +56,7 @@ public class LineRecord extends BranchRecord {
         Equipments.ConnectionInfo info2 = Equipments.getConnectionInfoInBusBreakerView(this.line.getTerminal2());
         Bus b2 = info2.getConnectionBus();
 
-        if ((!Float.isNaN(b1.getV()) && info1.isConnected()) || (!Float.isNaN(b2.getV()) && info2.isConnected())) {
+        if ((!Double.isNaN(b1.getV()) && info1.isConnected()) || (!Double.isNaN(b2.getV()) && info2.isConnected())) {
             if (super.isCorrect()) {
                 if (super.getModelicaType() != null) {
                     this.addValue(super.getModelicaType() + StaticData.WHITE_SPACE);
@@ -103,14 +103,14 @@ public class LineRecord extends BranchRecord {
     @Override
     public void setParameters(float snref) {
         //super.iidmbranchParameters = new ArrayList<IIDMParameter>();
-        float tNominalV = ((Line) this.line).getTerminal2().getVoltageLevel().getNominalV();
-        float voltage = !Float.isNaN(tNominalV) ? tNominalV : 0;
-        float z = (voltage * voltage) / snref;
+        double tNominalV = ((Line) this.line).getTerminal2().getVoltageLevel().getNominalV();
+        double voltage = !Double.isNaN(tNominalV) ? tNominalV : 0;
+        float z = (float) ((voltage * voltage) / snref);
 
-        super.addParameter(this.iidmbranchParameters, StaticData.R, this.line.getR() / z);
-        super.addParameter(this.iidmbranchParameters, StaticData.X, this.line.getX() / z);
-        super.addParameter(this.iidmbranchParameters, StaticData.G, this.line.getG1() * z);
-        super.addParameter(this.iidmbranchParameters, StaticData.B, this.line.getB1() * z);
+        super.addParameter(this.iidmbranchParameters, StaticData.R, (float) this.line.getR() / z);
+        super.addParameter(this.iidmbranchParameters, StaticData.X, (float) this.line.getX() / z);
+        super.addParameter(this.iidmbranchParameters, StaticData.G, (float) this.line.getG1() * z);
+        super.addParameter(this.iidmbranchParameters, StaticData.B, (float) this.line.getB1() * z);
     }
 
     @Override

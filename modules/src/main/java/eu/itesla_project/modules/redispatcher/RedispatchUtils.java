@@ -24,7 +24,7 @@ public final class RedispatchUtils {
     public static Map<String, Float> getParticipationFactor(Network network) {
         Map<String, Float> partecipationFactor = new HashMap<String, Float>();
         for (Generator generator : network.getGenerators()) {
-            partecipationFactor.put(generator.getId(), generator.getMaxP());
+            partecipationFactor.put(generator.getId(), (float) generator.getMaxP());
         }
         return partecipationFactor;
     }
@@ -72,23 +72,23 @@ public final class RedispatchUtils {
     }
 
     public static float getRedispatchPMax(Generator generator, float redispatchLimitsPercentage) {
-        float redispatchPMax = generator.getMaxP();
+        double redispatchPMax = generator.getMaxP();
         if (generator.getTargetP() < generator.getMinP()) {
-            redispatchPMax = generator.getMinP() + redispatchLimitsPercentage * 0.01f * generator.getMaxP();
+            redispatchPMax = generator.getMinP() + redispatchLimitsPercentage * 0.01 * generator.getMaxP();
         } else {
-            redispatchPMax = generator.getTargetP() + redispatchLimitsPercentage * 0.01f * generator.getMaxP();
+            redispatchPMax = generator.getTargetP() + redispatchLimitsPercentage * 0.01 * generator.getMaxP();
         }
-        return generator.getMaxP() > redispatchPMax ? redispatchPMax : generator.getMaxP();
+        return (float) (generator.getMaxP() > redispatchPMax ? redispatchPMax : generator.getMaxP());
     }
 
     public static float getRedispatchPMin(Generator generator, float redispatchLimitsPercentage) {
-        float redispatchPMin = generator.getMinP();
+        double redispatchPMin = generator.getMaxP();
         if (generator.getTargetP() > generator.getMaxP()) {
-            redispatchPMin = generator.getMaxP() - redispatchLimitsPercentage * 0.01f * generator.getMaxP();
+            redispatchPMin = generator.getMaxP() - redispatchLimitsPercentage * 0.01 * generator.getMaxP();
         } else {
-            redispatchPMin = generator.getTargetP() - redispatchLimitsPercentage * 0.01f * generator.getMaxP();
+            redispatchPMin = generator.getTargetP() - redispatchLimitsPercentage * 0.01 * generator.getMaxP();
         }
-        return generator.getMinP() < redispatchPMin ? redispatchPMin : generator.getMinP();
+        return (float) (generator.getMinP() < redispatchPMin ? redispatchPMin : generator.getMinP());
     }
 
 

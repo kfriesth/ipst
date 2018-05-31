@@ -38,10 +38,10 @@ public class BusRecord extends ModelicaRecord {
         this.bus = bus;
         this.busId = bus.getId();
 
-        if (!Float.isNaN(this.bus.getV())) {
-            this.busVoltage = bus.getV() / bus.getVoltageLevel().getNominalV();
+        if (!Double.isNaN(this.bus.getV())) {
+            this.busVoltage = (float) (bus.getV() / bus.getVoltageLevel().getNominalV());
 
-            this.busAngle = this.bus.getAngle();
+            this.busAngle = (float) this.bus.getAngle();
 
             addParameter(StaticData.V_0, this.busVoltage);
             addParameter(StaticData.ANGLE_0, this.busAngle);

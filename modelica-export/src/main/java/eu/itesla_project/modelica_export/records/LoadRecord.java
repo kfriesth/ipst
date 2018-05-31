@@ -40,19 +40,19 @@ public class LoadRecord extends ModelicaRecord {
         this.busInfo = busInfo;
         this.loadId = load.getId();
         this.busConnected = busInfo.isConnected();
-        this.p0 = this.load.getP0();
-        this.q0 = this.load.getQ0();
+        this.p0 = (float) this.load.getP0();
+        this.q0 = (float) this.load.getQ0();
         this.busVoltage = Float.NaN;
         this.busAngle = Float.NaN;
         this.sourceEngine = sourceEngine;
 
         if (this.busConnected) {
             if (load.getTerminal().getBusView().getBus() != null) {
-                if (!Float.isNaN(load.getTerminal().getBusView().getBus().getV())) {
-                    busVoltage = load.getTerminal().getBusView().getBus().getV() / load.getTerminal().getVoltageLevel().getNominalV();
+                if (!Double.isNaN(load.getTerminal().getBusView().getBus().getV())) {
+                    busVoltage = (float) (load.getTerminal().getBusView().getBus().getV() / load.getTerminal().getVoltageLevel().getNominalV());
                 }
-                if (!Float.isNaN(load.getTerminal().getBusView().getBus().getAngle())) {
-                    busAngle = load.getTerminal().getBusView().getBus().getAngle();
+                if (!Double.isNaN(load.getTerminal().getBusView().getBus().getAngle())) {
+                    busAngle = (float) load.getTerminal().getBusView().getBus().getAngle();
                 }
             }
 
