@@ -105,8 +105,8 @@ public class EchUtilsTest {
     @Test
     public void testGetPVstation() throws IOException {
         HvdcLine hline = networkHvdc.getHvdcLine("L");
-        assertTrue(EchUtil.getPStation(hline).getId().equals(networkHvdc.getVscConverterStation("C2").getId()));
-        assertTrue(EchUtil.getVStation(hline).getId().equals(networkHvdc.getVscConverterStation("C1").getId()));
+        assertEquals(networkHvdc.getVscConverterStation("C2").getId(), EchUtil.getPStation(hline).getId());
+        assertEquals(networkHvdc.getVscConverterStation("C1").getId(), EchUtil.getVStation(hline).getId());
     }
 
 }
